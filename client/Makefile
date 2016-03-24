@@ -1,11 +1,14 @@
 IDIR = include
 SDIR = src
+ODIR = obj
+LDIR =../libs
+
 CC=gcc
-CFLAGS=-I$(IDIR)
+CFLAGS=-I$(IDIR) -I$(LDIR)
 EXEC = client_exec
 
-ODIR=obj
-LDIR =../lib
+_SHARED = command.h
+SHARED = $(patsubst %,$(LDIR)/%,$(_SHARED))
 
 _DEPS =
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
@@ -14,7 +17,7 @@ _OBJ = client.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
-$(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
+$(ODIR)/%.o: $(SDIR)/%.c $(DEPS) $(SHARED)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 build: $(OBJ)
