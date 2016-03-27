@@ -9,19 +9,34 @@
 #include <netinet/in.h>
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 
+#include "user.h"
 #include "command.h"
 #include "utils.h"
 
 #define MAX_CLIENTS 10
 int fd_max;
 
+user_t *USERS_DB;
+int USERS_COUNT = 0;
+
 int quit(int argc, char **argv)
 {
     exit(EXIT_SUCCESS);
 }
 
-command_t command_table[1] = {{"exit", quit}};
-int CMD_COUNT = 1;
+int print(int argc, char **argv)
+{
+    int i;
+
+    for(i = 0; i < USERS_COUNT; i++) {
+        printf("[%d] %s %s\n", i, USERS_DB[i].name, USERS_DB[i].password);
+    }
+
+    return 0;
+}
+
+command_t command_table[2] = {{"exit", quit}, {"print", print}};
+int CMD_COUNT = 2;
 
 int init_server()
 {
@@ -85,6 +100,7 @@ int main(int argc, char **argv)
     FD_SET(STDIN_FILENO, &master);
 
     printf("[SERVER] starting\n");
+    USERS_DB = read_users("users_config", &USERS_COUNT);
 
     while(1) {
         read_fds = master;
@@ -102,7 +118,8 @@ int main(int argc, char **argv)
 
                     if((read_count = read(i, buffer, 1024)) == 0) {
                         printf("Someone disconnected :( \n");
-                        close(i);
+                        FD_CLR(i, &master);
+                        close(i);                        
                     } else {
                         printf("Someone sent:%s \n", buffer);
                     }
