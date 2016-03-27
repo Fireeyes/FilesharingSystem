@@ -10,6 +10,7 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include <arpa/inet.h>
 
+#include "networking.h"
 #include "command.h"
 #include "utils.h"
 
@@ -22,7 +23,15 @@ int login(int argc, char **argv)
 
         return -1;
     }
-
+    
+    packet_t pck;
+    pck.length = strlen(argv[argc]) * sizeof(char) + sizeof(int) + sizeof(packet_type);
+    pck.type = REQUEST;
+    strcpy(pck.data, argv[argc]);
+    
+    printf("Sending [%d] - %s\n", pck.length, pck.data);
+    send(server, &pck, pck.length, 0);
+    
     return 0;
 }
 

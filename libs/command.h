@@ -35,7 +35,7 @@ char *read_line()
 	instr = NULL;
 	instr_length = 0;
 
-	chunk = calloc(CHUNK_SIZE, sizeof(char));
+	chunk = (char*)calloc(CHUNK_SIZE, sizeof(char));
 	if (chunk == NULL) {
 		fprintf(stderr, ERR_ALLOCATION);
 		return instr;
@@ -52,7 +52,7 @@ char *read_line()
 			endline = 1;
 		}
 
-		instr = realloc(instr, instr_length + CHUNK_SIZE + 1);
+		instr = (char*)realloc(instr, instr_length + CHUNK_SIZE + 1);
 		if (instr == NULL)
 			break;
 
@@ -69,23 +69,45 @@ char *read_line()
 int makeargs(char *args, int *argc, char ***aa) {
     int c = 1;
     char *delim;
-    char **argv = calloc(c, sizeof (char *));
-
+    char **argv = (char**)calloc(c, sizeof (char *));
+    char *temp = (char*)malloc(sizeof(char) * strlen(args));
+    strcpy(temp, args);
+    
     argv[0] = args;
 
     while ((delim = strchr(argv[c - 1], ' '))) {
-        argv = realloc(argv, (c + 1) * sizeof (char *));
+        argv = (char**)realloc(argv, (c + 1) * sizeof (char *));
         argv[c] = delim + 1;
         *delim = 0x00;
         c++;
     }
-
+    
+    argv = (char**)realloc(argv, (c + 1) * sizeof (char *));
+    argv[c] = (char*)malloc(sizeof(char) * strlen(temp));
+    
+    strcpy(argv[c], temp);
+        
     *argc = c;
     *aa = argv;
 
     return c;
 }
 
+char *argvtoarray(int argc, char **argv)
+{
+    char* args;
+    int i, size = 0;
+    
+    for(i = 0; i < argc; i++) {
+        args = (char*)realloc(args, (size + strlen(argv[i]) + 1) * sizeof(char));
+        strcpy(args + size, argv[i]);
+        //args[strlen(args) + 1] = 0x00;
+        //args[strlen(args)] = ' ';
+        //size += strlen(args);
+    }
+    //args[strlen(args) - 1] = 0x00; //delete the last space
+    return args;
+}
 
 int execute_command(char *name, int argc, char **argv)
 {
